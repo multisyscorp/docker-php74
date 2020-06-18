@@ -79,7 +79,6 @@ RUN set -xe \
 COPY start.sh /
 COPY php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY php/supervisord.conf /etc/supervisord.conf
-COPY crontab /etc/crontabs/root
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer global require hirak/prestissimo --no-plugins --no-scripts
