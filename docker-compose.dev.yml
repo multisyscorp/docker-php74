@@ -1,0 +1,81 @@
+version: '3'
+services:
+  app:
+    build: .
+    container_name: app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: staging
+      PHP_OPCACHE_ENABLED: 0
+      PHP_OPCACHE_VALIDATE_TIMESTAMPS: 1
+      PHP_OPCACHE_MAX_ACCELERATED_FILES: 25000
+      PHP_OPCACHE_MEMORY_CONSUMPTION: 192
+      PHP_OPCACHE_MAX_WASTED_PERCENTAGE: 10
+      PHP_OPCACHE_INTERNED_STRINGS_BUFFER: 128
+    working_dir: /var/www
+    volumes:
+      - ./project:/var/www:delegated
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini:cached
+    networks:
+      - msys-network
+  web-server:
+    image: nginx:alpine
+    container_name: web-server
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "4000:8000"
+    volumes:
+      - ./project:/var/www:delegated
+      - ./nginx/conf.d/:/etc/nginx/conf.d/:cached
+    networks:
+      - msys-network
+  db:
+    image: mariadb:10.3
+    container_name: db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "4100:3306"
+    environment:
+      MYSQL_USER: root
+      MYSQL_DATABASE: msys_app
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_PASSWORD: 123123123
+      MYSQL_ROOT_PASSWORD: 123123123
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./db:/var/lib/mysql:delegated
+    networks:
+      - msys-network
+  redis:
+    image: redis:4.0.14
+    container_name: redis
+    ports:
+      - "4379:6379"
+    networks:
+      - msys-network
+    depends_on:
+      - app
+  elasticsearch:
+    image: elasticsearch:6.8.8
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    networks:
+      - msys-network
+    depends_on:
+      - app
+    volumes:
+      - es-data:/usr/share/elasticsearch/data:delegated
+networks:
+  msys-network:
+    driver: bridge
+volumes:
+  dbdata:
+    driver: local
+  es-data:
+    driver: local
