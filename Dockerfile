@@ -28,6 +28,8 @@ RUN set -xe \
     recode-dev \
     libxslt-dev \
     git \
+    nodejs \
+    nodejs-npm \
     supervisor \
     postgresql-client \
     postgresql-dev \
@@ -43,11 +45,6 @@ RUN set -xe \
     && echo 'redis' >> /usr/src/php-available-exts \
     icu-dev \
     openssl-dev \
-    git \
-    nodejs \
-    nodejs-npm
-
-RUN npm i -g pm2
 
     && docker-php-ext-configure gd \
     --with-freetype=/usr/include/ \
@@ -82,9 +79,12 @@ RUN npm i -g pm2
 COPY start.sh /
 COPY php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY php/supervisord.conf /etc/supervisord.conf
+COPY crontab /etc/crontabs/root
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer global require hirak/prestissimo --no-plugins --no-scripts
+
+RUN npm i -g pm2
 
 RUN addgroup -S sudo \
     && adduser -h /home/web -u 1000 -S -s /bin/bash -G sudo web \
